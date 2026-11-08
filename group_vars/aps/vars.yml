@@ -1,0 +1,48 @@
+---
+ansible_user: root
+# Dropbear has no sftp-server, and OpenSSH's scp uses SFTP: transfer files over the SSH session.
+openwrt_ssh_transfer_method: piped
+
+# Pulls in coreutils-sha1sum (needed for checksums of template/copy).
+openwrt_install_recommended_packages: true
+
+timezone: CET-1CEST,M3.5.0,M10.5.0/3
+zonename: Europe/Zurich
+
+# All switch ports bridged into the LAN (WAN port included).
+lan_ports: [lan1, lan2, lan3, lan4, wan]
+
+wifi_country: CH
+# Cudy WR3000S v1
+wifi_radio_paths:
+  2g: platform/soc/18000000.wifi
+  5g: platform/soc/18000000.wifi+1
+wifi_htmode:
+  2g: HE20
+  5g: HE80
+
+# One wifi-iface per network and band. ft: 802.11r with locally generated keys (PSK only).
+# Mobility domain: OpenWrt default, derived from the SSID (same on all APs, unique per SSID).
+wifi_networks:
+  - id: internal
+    ssid: "{{ vault_wifi_internal_ssid }}"
+    network: lan
+    key: "{{ vault_wifi_internal_key }}"
+    ft: true
+  - id: guest
+    ssid: "{{ vault_wifi_guest_ssid }}"
+    network: guest
+    key: "{{ vault_wifi_guest_key }}"
+    ft: true
+
+# Guest clients may only reach the internet.
+guest_blocked_subnets: [192.168.1.0/24, 192.168.71.0/24]
+guest_dhcp_leasetime: 12h
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCaD0hTagJpthXnD5TO/nfeSgB/Fgcc8LClXdWLyw1qGCyfndYgLs4N+bCUDpX2FVRhye8NadLVy+PO98GSZMDg9Zg/zUkyN1CBYU3ac2v7wC9F96jrpHK3pYGUl10qlw+QNQ/5kYjwclFLRkvonI4wJyugl2Sx+RcPLA34DaI1u0LiVhyxwEUXzqSKUGcLyF6J/d/1evmILlhiSLwognKaJWyvGvFZ0KBxeDP6j3H92/Y0vfb0J8PQvUA5ZJoDxfOvaGrobpYaJbOrVZXEmy7JcOyVJALdP6KTPL5ripBP1XlJZzKkNv3zEV1LjLEvLTg4uN9GnrwtyiXagk5EuAa4AgvB/1SGxyOZyJmxKDyKI7VXJD5f68aRvu7k/vb4jpS7GiBOnxloBf09BQJnPXUUPdmyiiglqKtioGOaOco8bDXVdboWysiNNshmOikZUrZU6DMgUsf5fxEq0WKXMw586pgszOcT8C+Q9pZE1+VLbehfoG9n4QWanYxUgnWws0s= noah@archy
+
+# Restore the config backup if the AP is unreachable rollback_timeout seconds after a change.
+# Disable (-e rollback=false) only for the bootstrap of a fresh AP, whose IP changes.
+rollback: true
+rollback_timeout: 300

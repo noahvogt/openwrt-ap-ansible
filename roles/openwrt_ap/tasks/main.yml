@@ -1,0 +1,53 @@
+---
+# Dead man's switch: back up the config and restore it after rollback_timeout,
+# unless this run reaches the end and removes the marker.
+- name: Arm config rollback
+  when: rollback and not ansible_check_mode
+  block:
+    - name: Set rollback marker path
+      ansible.builtin.set_fact:
+        rollback_marker: /tmp/ansible-rollback.{{ now(utc=true, fmt='%s') }}
+
+    - name: Back up current config
+      community.openwrt.command:
+        cmd: sysupgrade -b /tmp/ansible-rollback.tar.gz
+      changed_when: false
+
+    - name: Create rollback marker
+      community.openwrt.file:
+        path: "{{ rollback_marker }}"
+        state: touch
+      changed_when: false
+
+    - name: Start rollback timer
+      community.openwrt.nohup:
+        cmd: >-
+          sleep {{ rollback_timeout }};
+          [ -f {{ rollback_marker }} ] &&
+          rm {{ rollback_marker }} &&
+          sysupgrade -r /tmp/ansible-rollback.tar.gz &&
+          reload_config
+      changed_when: false
+
+- name: Render UCI config
+  community.openwrt.template:
+    src: "{{ item }}.j2"
+    dest: /etc/config/{{ item }}
+  loop: [system, network, wireless, firewall, dhcp]
+  notify: [Reload config, Wait for AP]
+
+- name: Install SSH authorized keys
+  community.openwrt.template:
+    src: authorized_keys.j2
+    dest: /etc/dropbear/authorized_keys
+    mode: "0600"
+
+- name: Apply config
+  ansible.builtin.meta: flush_handlers
+
+- name: Disarm config rollback
+  community.openwrt.file:
+    path: "{{ rollback_marker }}"
+    state: absent
+  when: rollback and not ansible_check_mode
+  changed_when: false

@@ -1,0 +1,32 @@
+
+config interface 'loopback'
+	option device 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config globals 'globals'
+	option packet_steering '1'
+
+config device
+	option name 'br-lan'
+	option type 'bridge'
+{% for port in lan_ports %}
+	list ports '{{ port }}'
+{% endfor %}
+
+config interface 'lan'
+	option device 'br-lan'
+	option proto 'dhcp'
+
+config device
+	option type 'bridge'
+	option name 'br-guest'
+	option bridge_empty '1'
+
+config interface 'guest'
+	option proto 'static'
+	option device 'br-guest'
+	option ipaddr '{{ guest_ipaddr }}'
+	option netmask '255.255.255.0'
+

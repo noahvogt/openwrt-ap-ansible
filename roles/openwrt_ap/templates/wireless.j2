@@ -1,0 +1,30 @@
+{% macro q(s) %}'{{ s | replace("'", "'\\''") }}'{% endmacro %}
+{% for band in ['2g', '5g'] %}
+
+config wifi-device 'radio{{ loop.index0 }}'
+	option type 'mac80211'
+	option path '{{ wifi_radio_paths[band] }}'
+	option band '{{ band }}'
+	option channel '{{ wifi_channel[band] }}'
+	option htmode '{{ wifi_htmode[band] }}'
+	option country '{{ wifi_country }}'
+	option cell_density '0'
+{% endfor %}
+{% for net in wifi_networks %}
+{% for band in ['2g', '5g'] %}
+
+config wifi-iface '{{ net.id }}_{{ band }}'
+	option device 'radio{{ loop.index0 }}'
+	option network '{{ net.network }}'
+	option mode 'ap'
+	option ssid {{ q(net.ssid) }}
+	option encryption 'psk2'
+	option key {{ q(net.key) }}
+{% if net.ft %}
+	option ieee80211r '1'
+	option ft_over_ds '0'
+	option ft_psk_generate_local '1'
+{% endif %}
+{% endfor %}
+{% endfor %}
+

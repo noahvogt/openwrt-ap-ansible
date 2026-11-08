@@ -1,0 +1,8 @@
+---
+- name: Provision OpenWrt access points
+  hosts: aps
+  gather_facts: false
+  serial: 1
+  roles:
+    - community.openwrt.init
+    - openwrt_ap

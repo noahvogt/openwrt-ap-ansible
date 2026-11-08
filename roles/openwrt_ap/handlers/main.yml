@@ -1,0 +1,10 @@
+---
+- name: Reload config
+  community.openwrt.command:
+    cmd: reload_config
+
+- name: Wait for AP
+  community.openwrt.wait_for_connection:
+    delay: 15
+    timeout: "{{ rollback_timeout - 60 }}"
+  when: rollback

@@ -1,0 +1,49 @@
+
+config defaults
+	option input 'REJECT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	option synflood_protect '1'
+
+config zone
+	option name 'lan'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'ACCEPT'
+	option masq '1'
+	list network 'lan'
+
+config zone
+	option name 'guest'
+	option input 'REJECT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	list network 'guest'
+
+config forwarding
+	option src 'guest'
+	option dest 'lan'
+
+config rule
+	option name 'Guest_DHCP'
+	option src 'guest'
+	option dest_port '67-68'
+	option target 'ACCEPT'
+	list proto 'udp'
+
+config rule
+	option name 'Guest_DNS'
+	option src 'guest'
+	option dest_port '53'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Block_Guest_from_Lan'
+	option src 'guest'
+	option dest 'lan'
+	option target 'REJECT'
+	list proto 'all'
+{% for net in guest_blocked_subnets %}
+	list dest_ip '{{ net }}'
+{% endfor %}
+

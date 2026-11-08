@@ -1,0 +1,9 @@
+---
+# Order matters: site.yml runs serially in this order.
+# Leaf APs first, AP1 (uplink for the others) last.
+all:
+  children:
+    aps:
+      hosts:
+        ap2:
+        ap1:
