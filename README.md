@@ -42,7 +42,7 @@ ansible-playbook upgrade.yml --limit ap2   # one AP first
 ansible-playbook upgrade.yml               # all
 ```
 
-Sysupgrade to `openwrt_version` (official image, checksum verified), one AP at a time, keeping the config. APs already on that version are skipped. Point releases only; do major releases on site.
+Sysupgrade to `openwrt_version` (official image, checksum verified), one AP at a time, keeping the config. APs already on that version are skipped. For a major release, check the templates against the new defaults (`/etc/config`, `/etc/uci-defaults` in the image) and upgrade one AP first.
 
 ### Guest network
 

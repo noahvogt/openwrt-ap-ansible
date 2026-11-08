@@ -7,7 +7,7 @@ openwrt_ssh_transfer_method: piped
 openwrt_install_recommended_packages: true
 
 # Firmware for upgrade.yml
-openwrt_version: 24.10.8
+openwrt_version: 25.12.6
 openwrt_target: mediatek/filogic
 openwrt_board: cudy,wr3000s-v1
 openwrt_release_url: https://downloads.openwrt.org/releases/{{ openwrt_version }}/targets/{{ openwrt_target }}
