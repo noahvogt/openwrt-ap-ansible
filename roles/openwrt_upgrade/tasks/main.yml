@@ -1,0 +1,67 @@
+---
+- name: Read board and release
+  community.openwrt.slurp:
+    src: "{{ item }}"
+  loop: [/tmp/sysinfo/board_name, /etc/openwrt_release]
+  register: _sysinfo
+
+- name: Set upgrade facts
+  ansible.builtin.set_fact:
+    _board: "{{ _sysinfo.results[0].content | b64decode | trim }}"
+    _release: "{{ _sysinfo.results[1].content | b64decode | regex_search(\"DISTRIB_RELEASE='([^']+)'\", '\\1') | first }}"
+    _image: openwrt-{{ openwrt_version }}-{{ openwrt_target | replace('/', '-') }}-{{ openwrt_board | replace(',', '_') }}-squashfs-sysupgrade.bin
+
+- name: Check board
+  ansible.builtin.assert:
+    that: _board == openwrt_board
+    fail_msg: Board is {{ _board }}, expected {{ openwrt_board }}
+    quiet: true
+
+- name: Upgrade {{ _release }} -> {{ openwrt_version }}
+  when: _release != openwrt_version
+  block:
+    - name: Get image checksum
+      ansible.builtin.set_fact:
+        _sha256: >-
+          {{ lookup('ansible.builtin.url', openwrt_release_url ~ '/sha256sums', split_lines=false)
+             | regex_search('([0-9a-f]{64}) \*' ~ (_image | regex_escape) ~ '\n', '\1') | first }}
+
+    - name: Download image
+      community.openwrt.command:
+        cmd: uclient-fetch -q -O /tmp/sysupgrade.bin {{ openwrt_release_url }}/{{ _image }}
+      changed_when: false
+
+    - name: Verify image checksum
+      community.openwrt.command:
+        cmd: sha256sum /tmp/sysupgrade.bin
+      register: _image_sha256
+      changed_when: false
+      failed_when: _image_sha256.stdout.split()[0] != _sha256
+
+    - name: Test image
+      community.openwrt.command:
+        cmd: sysupgrade -T /tmp/sysupgrade.bin
+      changed_when: false
+
+    - name: Flash image (keeps config)
+      community.openwrt.nohup:
+        cmd: sysupgrade /tmp/sysupgrade.bin
+        delay: 2
+
+    - name: Wait for reboot
+      community.openwrt.wait_for_connection:
+        delay: 90
+        timeout: 600
+
+    - name: Read release after upgrade
+      community.openwrt.slurp:
+        src: /etc/openwrt_release
+      register: _release_after
+      when: not ansible_check_mode
+
+    - name: Check release
+      ansible.builtin.assert:
+        that: "\"DISTRIB_RELEASE='\" ~ openwrt_version ~ \"'\" in (_release_after.content | b64decode)"
+        fail_msg: Upgrade to {{ openwrt_version }} failed
+        quiet: true
+      when: not ansible_check_mode

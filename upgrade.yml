@@ -1,0 +1,15 @@
+---
+# Sysupgrade to openwrt_version (keeps config, SSH keys, passwords), one AP at a time.
+# Afterwards site.yml reinstalls packages dropped by the upgrade and reapplies the config.
+- name: Upgrade OpenWrt on access points
+  hosts: aps
+  gather_facts: false
+  serial: 1
+  vars:
+    openwrt_install_recommended_packages: false
+  roles:
+    - community.openwrt.init
+    - openwrt_upgrade
+
+- name: Reapply config
+  ansible.builtin.import_playbook: site.yml

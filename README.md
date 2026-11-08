@@ -15,6 +15,7 @@ No Python is needed on the APs: [community.openwrt](https://galaxy.ansible.com/u
 | `group_vars/aps/vault.yml` | SSIDs and PSKs, ansible-vault encrypted |
 | `host_vars/<ap>.yml` | Per AP: IP, hostname, channels, guest gateway, trunk ports |
 | `roles/openwrt_ap/` | Tasks, handlers, UCI templates |
+| `roles/openwrt_upgrade/` | Firmware upgrade (`upgrade.yml`) |
 
 ## Setup
 
@@ -33,6 +34,15 @@ ansible-playbook site.yml --diff --limit ap2      # single AP
 ```
 
 Changes are applied with `reload_config`. APs run one at a time.
+
+### Upgrade
+
+```sh
+ansible-playbook upgrade.yml --limit ap2   # one AP first
+ansible-playbook upgrade.yml               # all
+```
+
+Sysupgrade to `openwrt_version` (official image, checksum verified), one AP at a time, keeping the config. APs already on that version are skipped. Point releases only; do major releases on site.
 
 ### Guest network
 

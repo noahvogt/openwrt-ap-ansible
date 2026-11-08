@@ -6,6 +6,12 @@ openwrt_ssh_transfer_method: piped
 # Pulls in coreutils-sha1sum (needed for checksums of template/copy).
 openwrt_install_recommended_packages: true
 
+# Firmware for upgrade.yml
+openwrt_version: 24.10.8
+openwrt_target: mediatek/filogic
+openwrt_board: cudy,wr3000s-v1
+openwrt_release_url: https://downloads.openwrt.org/releases/{{ openwrt_version }}/targets/{{ openwrt_target }}
+
 timezone: CET-1CEST,M3.5.0,M10.5.0/3
 zonename: Europe/Zurich
 
