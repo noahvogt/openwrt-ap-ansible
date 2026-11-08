@@ -1,6 +1,6 @@
 # openwrt-ap-ansible
 
-Ansible for OpenWrt access points in dumb AP mode (Cudy WR3000S): 802.11r fast roaming, isolated guest network, rollback on lost connectivity.
+Ansible for OpenWrt access points in dumb AP mode (Cudy WR3000S): 802.11r fast roaming, guest VLAN, rollback on lost connectivity.
 
 Each AP gets complete `/etc/config/{system,network,wireless,firewall,dhcp}` files rendered from templates. Anything not in this repo is removed on the next run. **Do not change config via LuCI.**
 
@@ -13,7 +13,7 @@ No Python is needed on the APs: [community.openwrt](https://galaxy.ansible.com/u
 | `inventory.yml` | APs, in run order (leaf APs first, AP1 last) |
 | `group_vars/aps/vars.yml` | Shared settings: SSIDs, ports, firewall, SSH keys |
 | `group_vars/aps/vault.yml` | SSIDs and PSKs, ansible-vault encrypted |
-| `host_vars/<ap>.yml` | Per AP: IP, hostname, channels, guest subnet |
+| `host_vars/<ap>.yml` | Per AP: IP, hostname, channels, guest gateway, trunk ports |
 | `roles/openwrt_ap/` | Tasks, handlers, UCI templates |
 
 ## Setup
@@ -33,6 +33,10 @@ ansible-playbook site.yml --diff --limit ap2      # single AP
 ```
 
 Changes are applied with `reload_config`. APs run one at a time.
+
+### Guest network
+
+Guest Wi-Fi of all APs is bridged into VLAN 20 (tagged between the APs, `guest_trunk_ports`). The AP with `guest_gateway: true` routes `192.168.20.0/24`: DHCP, DNS, NAT into the LAN, no access to the LAN itself. One subnet on all APs, so clients keep their IP when roaming. The LAN is untagged on all ports.
 
 ### Rollback
 

@@ -19,6 +19,7 @@ config zone
 	option output 'ACCEPT'
 	option forward 'REJECT'
 	list network 'guest'
+{% if guest_gateway %}
 
 config forwarding
 	option src 'guest'
@@ -46,4 +47,5 @@ config rule
 {% for net in guest_blocked_subnets %}
 	list dest_ip '{{ net }}'
 {% endfor %}
+{% endif %}
 

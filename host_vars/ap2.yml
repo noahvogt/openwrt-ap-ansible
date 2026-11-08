@@ -6,4 +6,4 @@ wifi_channel:
   2g: 1
   5g: 36
 
-guest_ipaddr: 192.168.3.1
+guest_trunk_ports: [lan1]  # AP1

@@ -15,18 +15,30 @@ config device
 	list ports '{{ port }}'
 {% endfor %}
 
-config interface 'lan'
+config bridge-vlan
 	option device 'br-lan'
+	option vlan '1'
+{% for port in lan_ports %}
+	list ports '{{ port }}:u*'
+{% endfor %}
+
+config bridge-vlan
+	option device 'br-lan'
+	option vlan '{{ guest_vid }}'
+{% for port in guest_trunk_ports %}
+	list ports '{{ port }}:t'
+{% endfor %}
+
+config interface 'lan'
+	option device 'br-lan.1'
 	option proto 'dhcp'
 
-config device
-	option type 'bridge'
-	option name 'br-guest'
-	option bridge_empty '1'
-
 config interface 'guest'
+	option device 'br-lan.{{ guest_vid }}'
+{% if guest_gateway %}
 	option proto 'static'
-	option device 'br-guest'
 	option ipaddr '{{ guest_ipaddr }}'
 	option netmask '255.255.255.0'
-
+{% else %}
+	option proto 'none'
+{% endif %}

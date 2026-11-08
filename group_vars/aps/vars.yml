@@ -35,6 +35,12 @@ wifi_networks:
     key: "{{ vault_wifi_guest_key }}"
     ft: true
 
+# Guest Wi-Fi is bridged into VLAN guest_vid, tagged on guest_trunk_ports (links between APs).
+# The guest gateway routes it (DHCP, NAT into the LAN); other APs only bridge. LAN stays untagged.
+guest_vid: 20
+guest_ipaddr: 192.168.20.1
+guest_gateway: false
+guest_trunk_ports: []
 # Guest clients may only reach the internet.
 guest_blocked_subnets: [192.168.1.0/24, 192.168.71.0/24]
 guest_dhcp_leasetime: 12h
