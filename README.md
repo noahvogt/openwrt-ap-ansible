@@ -2,9 +2,9 @@
 
 Ansible for OpenWrt access points in dumb AP mode (Cudy WR3000S): 802.11r fast roaming, guest VLAN, rollback on lost connectivity.
 
-Each AP gets complete `/etc/config/{system,network,wireless,firewall,dhcp}` files rendered from templates. Anything not in this repo is removed on the next run. **Do not change config via LuCI.**
+Each AP gets complete `/etc/config/{system,network,wireless,firewall,dhcp,dropbear}` files rendered from templates. Anything not in this repo is removed on the next run. **Do not change config via LuCI.**
 
-No Python is needed on the APs: [community.openwrt](https://galaxy.ansible.com/ui/repo/published/community/openwrt/) runs its modules with ucode.
+The root password (hash in the vault) is set by Ansible. No Python is needed on the APs: [community.openwrt](https://galaxy.ansible.com/ui/repo/published/community/openwrt/) runs its modules with ucode.
 
 ## Layout
 
@@ -12,7 +12,7 @@ No Python is needed on the APs: [community.openwrt](https://galaxy.ansible.com/u
 | :--- | :--- |
 | `inventory.yml` | APs, in run order (leaf APs first, AP1 last) |
 | `group_vars/aps/vars.yml` | Shared settings: SSIDs, ports, firewall, SSH keys |
-| `group_vars/aps/vault.yml` | SSIDs and PSKs, ansible-vault encrypted |
+| `group_vars/aps/vault.yml` | SSIDs, PSKs, root password hash; ansible-vault encrypted |
 | `host_vars/<ap>.yml` | Per AP: IP, hostname, channels, guest gateway, trunk ports |
 | `roles/openwrt_ap/` | Tasks, handlers, UCI templates |
 | `roles/openwrt_upgrade/` | Firmware upgrade (`upgrade.yml`) |
@@ -54,12 +54,12 @@ Before rendering, every run backs up the config (`sysupgrade -b`) and starts a t
 
 ## New AP
 
-1. Flash OpenWrt: <https://openwrt.org/toh/cudy/wr3000s_v1>
-2. Add a static DHCP lease in Pi-hole (`192.168.71.1x`, MAC from the label).
-3. Add the AP to `inventory.yml` and `host_vars/`.
-4. Cable: AP `wan` to the LAN (internet for package install), laptop to AP `lan1`. Do **not** plug a fresh AP's `lan` ports into the LAN (it runs its own DHCP server on `192.168.1.1`).
-5. Bootstrap (fresh OpenWrt allows root SSH without password):
+1. Flash OpenWrt: <https://openwrt.org/toh/cudy/wr3000s_v1>. Keep the AP off the LAN until step 4 (stock and fresh OpenWrt run a DHCP server on their `lan` ports).
+2. Add the AP to `inventory.yml` and `host_vars/`.
+3. Cable: AP `wan` to the LAN (internet for package install), laptop to AP `lan1`.
+4. Bootstrap (fresh OpenWrt allows root SSH without password):
    ```sh
    ansible-playbook site.yml --diff --limit apN -e ansible_host=192.168.1.1 -e rollback=false
    ```
-   Afterwards all ports are bridged into the LAN and the AP gets its IP from Pi-hole.
+   Afterwards all ports are bridged into the LAN and the AP gets a pool IP from Pi-hole (hostname `apN`).
+5. In Pi-hole, make that lease static (`192.168.71.1x`), then `ssh root@<pool IP> ifup lan`.

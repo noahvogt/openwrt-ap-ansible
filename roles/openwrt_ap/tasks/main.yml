@@ -33,7 +33,7 @@
   community.openwrt.template:
     src: "{{ item }}.j2"
     dest: /etc/config/{{ item }}
-  loop: [system, network, wireless, firewall, dhcp]
+  loop: [system, network, wireless, firewall, dhcp, dropbear]
   notify: [Reload config, Wait for AP]
 
 - name: Install SSH authorized keys
@@ -41,6 +41,15 @@
     src: authorized_keys.j2
     dest: /etc/dropbear/authorized_keys
     mode: "0600"
+
+# For LuCI and SSH (password and key auth).
+- name: Set root password
+  community.openwrt.lineinfile:
+    path: /etc/shadow
+    regex: '^root:[^:]*:(.*)$'
+    line: 'root:{{ vault_root_password_hash }}:\1'
+    backrefs: true
+  no_log: true
 
 - name: Apply config
   ansible.builtin.meta: flush_handlers

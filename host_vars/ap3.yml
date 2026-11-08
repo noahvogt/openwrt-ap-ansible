@@ -1,0 +1,9 @@
+---
+ansible_host: 192.168.71.13
+hostname: ap3
+
+wifi_channel:
+  2g: 9
+  5g: 36
+
+guest_trunk_ports: [wan]  # dumb switch -> AP1 lan3

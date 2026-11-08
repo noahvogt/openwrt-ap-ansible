@@ -1,6 +1,8 @@
 ---
 # Template for group_vars/aps/vault.yml (values from KeePass), then:
 #   ansible-vault encrypt group_vars/aps/vault.yml
+# Root password hash: openssl passwd -5
+vault_root_password_hash: CHANGEME
 vault_wifi_internal_ssid: CHANGEME
 vault_wifi_internal_key: CHANGEME
 vault_wifi_guest_ssid: CHANGEME
