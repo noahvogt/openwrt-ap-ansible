@@ -6,4 +6,4 @@ wifi_channel:
   2g: 9
   5g: 36
 
-guest_trunk_ports: [wan]  # dumb switch -> AP1 lan3
+guest_trunk_ports: [lan1]  # dumb switch -> AP1 lan3

@@ -7,4 +7,4 @@ wifi_channel:
   5g: 36
 
 guest_gateway: true
-guest_trunk_ports: [lan2]  # AP2
+guest_trunk_ports: [lan2, lan3]  # AP2, dumb switch (AP3)

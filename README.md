@@ -54,12 +54,20 @@ Before rendering, every run backs up the config (`sysupgrade -b`) and starts a t
 
 ## New AP
 
-1. Flash OpenWrt: <https://openwrt.org/toh/cudy/wr3000s_v1>. Keep the AP off the LAN until step 4 (stock and fresh OpenWrt run a DHCP server on their `lan` ports).
-2. Add the AP to `inventory.yml` and `host_vars/`.
-3. Cable: AP `wan` to the LAN (internet for package install), laptop to AP `lan1`.
-4. Bootstrap (fresh OpenWrt allows root SSH without password):
+1. Add the AP to `inventory.yml` and `host_vars/`.
+2. Flash OpenWrt: <https://openwrt.org/toh/cudy/wr3000s_v1>. Connect only the flashing computer to the AP (stock and fresh OpenWrt run a DHCP server on their `lan` ports). The stock web UI only accepts Cudy's intermediate image (`OpenWrt 23.05-SNAPSHOT-CUDY`). From there, flash the official sysupgrade image without keeping settings (`sysupgrade -T`, then `sysupgrade -n`).
+3. Make the LAN a DHCP client without DHCP server (`ssh root@192.168.1.1`, no password yet):
    ```sh
-   ansible-playbook site.yml --diff --limit apN -e ansible_host=192.168.1.1 -e rollback=false
+   uci set network.lan.proto='dhcp'
+   uci set dhcp.lan.ignore='1'
+   uci set dhcp.lan.dhcpv6='disabled'
+   uci set dhcp.lan.ra='disabled'
+   uci commit
+   reload_config
    ```
-   Afterwards all ports are bridged into the LAN and the AP gets a pool IP from Pi-hole (hostname `apN`).
-5. In Pi-hole, make that lease static (`192.168.71.1x`), then `ssh root@<pool IP> ifup lan`.
+4. Connect the uplink (`guest_trunk_ports`) to the LAN. Use a `lan` port: fresh OpenWrt blocks SSH on `wan`.
+5. Bootstrap with the pool IP from Pi-hole (hostname `OpenWrt`):
+   ```sh
+   ansible-playbook site.yml --diff --limit apN -e ansible_host=<pool IP> -e '{"rollback": false}'
+   ```
+6. In Pi-hole, make the lease of `apN` static (`192.168.71.1x`, MAC from the lease list after step 5), then `ssh root@<pool IP> ifup lan`.
