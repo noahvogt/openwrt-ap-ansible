@@ -51,6 +51,13 @@
     backrefs: true
   no_log: true
 
+# Upgrades go through upgrade.yml, not LuCI (also stops the LuCI prompt).
+- name: Disable LuCI online upgrade check
+  community.openwrt.uci:
+    key: attendedsysupgrade.client.login_check_for_upgrades
+    value: "0"
+    autocommit: true
+
 - name: Apply config
   ansible.builtin.meta: flush_handlers
 
