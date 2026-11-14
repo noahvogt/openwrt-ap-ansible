@@ -3,7 +3,7 @@ ansible_host: 192.168.71.12
 hostname: ap2
 
 wifi_channel:
-  2g: 1
+  2g: 11
   5g: 36
 
 guest_trunk_ports: [lan1]  # AP1

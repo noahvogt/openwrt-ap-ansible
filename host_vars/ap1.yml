@@ -3,7 +3,7 @@ ansible_host: 192.168.71.11
 hostname: ap1
 
 wifi_channel:
-  2g: 5
+  2g: 1
   5g: 36
 
 guest_gateway: true
